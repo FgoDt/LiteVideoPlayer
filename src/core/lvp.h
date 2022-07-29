@@ -1,0 +1,14 @@
+#ifndef _LITE_VIDEO_PLAYER_H_
+#define _LITE_VIDEO_PLAYER_H_
+
+#define lvp_version         1000000
+#define LVP_VERSION         "1.0.0"
+#define LVP_VER             "LVP/" LVP_VERSION
+
+#define LVP_OPTIONS_ANDROID_NATIVE_WINDOW "LVP_ANDROID_NATIVE_WINDOW"
+#define LVP_OPTIONS_AUDIO_RENDER "audio_render"
+#define LVP_OPTIONS_VIDEO_RENDER "video_render"
+#define LVP_OPTIONS_PROFILE_COLLECTION_ON "PROFILE_ON"
+#define LVP_OPTIONS_JNI_ENV "JNI_ENV"
+
+#endif /* _LITE_VIDEO_PLAYER_ */

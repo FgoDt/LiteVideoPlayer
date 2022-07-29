@@ -1,0 +1,74 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+/lvpBase/lvpBaseType/x64
+/lvpBase/lvpBaseType/Debug
+/lvpBase/lvpBaseType/*.user
+/lvpBase/Debug
+/lvpBase/lvpBase/x64
+/lvpBase/lvpBase/lvpBase.vcxproj.user
+/lvpBase/lvpBase/Debug
+/lvpBase/.vs
+.vscode/
+build/
+deps/*
+/lvpBase/ffmpeg
+/lvpBase/lvpBaseType/*.filters
+/.vs
+/src/test/lvp_core_test/.vs
+*.ipch
+*.tlog
+*.log
+*.db
+*.props
+*.cbt
+*.idx
