@@ -17,7 +17,7 @@ public class AudioTrackRender {
     private int wpos = 0;
 
     public AudioTrackRender(){
-        maybeReInitPlayer(2,1,22050);
+       // maybeReInitPlayer(2,1,22050);
     }
 
     private void maybeReInitPlayer(int channels, int format, int sampleRate) {

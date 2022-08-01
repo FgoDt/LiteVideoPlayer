@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
         playerView = findViewById(R.id.lvpview);
         Button button = findViewById(R.id.button);
         button.setOnClickListener((View view)->{
-            playerView.play("http://vod.xthk.cn/customerTrans/4095636471ceeea04387b2562c872e3e/1996517d-1823f750ce9-0004-f799-d83-5424c.mp4?auth_key=1659085942-9ca0988e00694b499b99b7c44ae64250-0-8ca35b4ef54736a60aa783073ec713b5");
+            playerView.play("http://video.xthktech.cn/customerTrans/1070d02a7f655820c5359aa22e24c369/2973309f-17f86254c4a-0004-8f57-aa3-1ed3d.mp4?auth_key=1659342984-28463040394e4177bbb5251e84a83f42-0-7dcb35019c55d2147e80663dee1dd770");
         });
     }
 

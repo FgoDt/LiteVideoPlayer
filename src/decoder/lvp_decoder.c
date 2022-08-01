@@ -160,6 +160,28 @@ static int init_video_decoder(LVPDecoder *decoder, LVPPkt *pkt){
 }
 
 
+static int reconfig_video_decoder(LVPDecoder *decoder){
+	uint8_t *data = av_malloc(decoder->avctx->extradata_size);
+	memcpy(data, decoder->avctx->extradata, decoder->avctx->extradata_size);
+	AVPacket *pkt = av_packet_alloc();
+	int ret = av_packet_from_data(pkt, data, decoder->avctx->extradata_size);
+	if(ret != 0){
+		lvp_error(decoder->log, "reconfigure  decoder error ret: %d", ret);
+		return LVP_E_FATAL_ERROR;
+	}
+	LVPPkt *lvpPkt = lvp_pkt_alloc(pkt);
+	lvpPkt->extra_data = 1;
+	lvpPkt->codec_id = decoder->avctx->codec_id;
+	lvpPkt->time_base = decoder->avctx->time_base;
+	lvpPkt->type = decoder->avctx->codec_type;
+	lvpPkt->height = decoder->avctx->height;
+	lvpPkt->width = decoder->avctx->width;
+	if(lvpPkt->type == AVMEDIA_TYPE_AUDIO){
+		return init_audio_decoder(decoder, lvpPkt);
+	}else if(lvpPkt->type == AVMEDIA_TYPE_VIDEO){
+		return init_video_decoder(decoder, lvpPkt);
+	}
+}
 
 static void* decoder_thread(void *data){
     LVPDecoder *d = (LVPDecoder*)data;
@@ -209,21 +231,56 @@ static void* decoder_thread(void *data){
 				continue;
 			}
 			else if (lpkt->type == AVMEDIA_TYPE_VIDEO) {
-				init_video_decoder(d, lpkt);
+				ret = init_video_decoder(d, lpkt);
 				if (ret != LVP_OK) {
 					lvp_error(d->log, "reset audio codec error\n", NULL);
 					break;
 				}
 				continue;
 			}
+		} else{
+            d->decoder_pkt_count++;
+        }
+
+		//reconfigure decoder
+		if(d->reconfig_stage != 0){
+			ret = 0;
+			switch (d->reconfig_stage) {
+				case 1:
+					ret = reconfig_video_decoder(d);
+					if(ret != LVP_OK){
+						lvp_error(d->log, "reconfigure decoder error\n", NULL);
+						break;
+					}
+					d->reconfig_stage++;
+					break;
+				case 2:
+					//find key frame
+					if(lpkt->pkt->flags & AV_PKT_FLAG_KEY){
+						d->reconfig_stage++;
+					}else{
+						continue;
+					}
+					break;
+				case 3:
+					//done reconfigure
+					lvp_debug(d->log, "reconfigure %s decoder done", d->avctx->codec_type == AVMEDIA_TYPE_VIDEO ? "video" : "audio");
+					d->reconfig_stage = 0;
+					break;
+				default:
+					d->reconfig_stage = 0;
+			}
 		}
+
 		lvp_mutex_lock(&d->mutex);
 		ret = avcodec_send_packet(d->avctx, d->ipkt);
 		lvp_mutex_unlock(&d->mutex);
 		if (ret < 0 && ret != AVERROR(EAGAIN)) {
-			lvp_error(d->log, "send packet error %d", ret);
+			lvp_error(d->log, "send packet error %d decoder pkt count:%d", ret, d->decoder_pkt_count);
 			av_packet_free(&d->ipkt);
-			break;
+			//try reconfigure
+			d->reconfig_stage++;
+			continue;
 		}
 		else if (ret == AVERROR(EAGAIN)) {
 			need_req = 0;

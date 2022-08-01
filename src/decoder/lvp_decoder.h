@@ -17,7 +17,12 @@ typedef struct lvp_decoder{
     AVPacket *ipkt;
     lvp_thread dec_thread;
 
+	int decoder_pkt_count;
     int decoder_thread_run;
+	int reconfig_stage;	// 0 waiting
+						// 1 need reconfig decoder
+						// 2 decoder done try find key frame
+						// 3 reconfig done
 
     enum AVMediaType codec_type;
     AVStream *stream;
