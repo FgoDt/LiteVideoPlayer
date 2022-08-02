@@ -6,7 +6,7 @@
 #define LVP_USE_PTHREAD  1
 #endif
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 #include "lvp_win32_config.h"
 #endif
 

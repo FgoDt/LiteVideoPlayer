@@ -1,33 +1,34 @@
 cmake_minimum_required(VERSION 3.0)
 
+add_definitions(-DLVP_WIN -DLVP_DESKTOP)
 
 project(lvp)
 
 
-include_directories("./deps/ffmpeg/linux/include/")
-link_directories("./deps/ffmpeg/linux/lib/")
+include_directories("./deps/win64/ffmpeg/include/")
+link_directories("./deps/win64/ffmpeg/lib/")
+include_directories("./deps/win64")
+link_directories("./deps/win64/SDL2/lib/x64/")
 
-include_directories("./deps/ffmpeg/windows/include/")
-link_directories("./deps/ffmpeg/windows/lib/")
-include_directories("./deps/SDL2")
-link_directories("./deps/SDL2/lib/x64/")
+include_directories("./deps/android/SoundTouch/include/")
 
-include_directories("./deps/soundtouch-2.3.1/include")
-link_directories("./deps/soundtouch-2.3.1/lib")
-
-include_directories("/usr/local/opt/openssl/include")
-link_directories("/usr/local/opt/openssl/lib")
-
-#if(CAMKE_HOST_APPLE)
-#find_library(SDL2 SDL2)
-#find_library(AVFoundation AVFoundation)
-#find_library(VideoToolbox VideoToolbox)
-#find_library(AudioToolbox AudioToolbox)
-#find_library(CoreFoundation CoreFoundation)
-#find_library(CoreMedia CoreMedia)
-#find_library(CoreVideo CoreVideo)
-#find_library(Security Security)
-#endif()
+add_library(
+        SoundTouch
+        ./deps/android/SoundTouch/source/SoundTouch/AAFilter.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/FIFOSampleBuffer.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/FIRFilter.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/cpu_detect_x86.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/sse_optimized.cpp
+        ./deps/android/SoundTouch/source/SoundStretch/WavFile.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/RateTransposer.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/SoundTouch.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/InterpolateShannon.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/InterpolateCubic.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/InterpolateLinear.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/TDStretch.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/BPMDetect.cpp
+        ./deps/android/SoundTouch/source/SoundTouch/PeakFinder.cpp
+)
 
 add_library(lvp 
             ./src/core/lvp_array.c
@@ -62,11 +63,11 @@ add_library(lvp
             ./src/render/lvp_video_render.c
 
             ./src/cache/lvp_cache_module.c
- "src/core/lvp_pkt.h" "src/core/lvp_pkt.c")
+            src/core/lvp_pkt.c
+            src/core/lvp_profile.c)
 
 add_executable( LiteVideoPlayer
-        ./src/core/lvp.c
- "src/core/lvp_pkt.h" "src/core/lvp_pkt.c")
+        ./src/core/lvp.c)
 
 target_link_libraries(
 	lvp
@@ -78,25 +79,7 @@ target_link_libraries(
     avutil
     SDL2
     SDL2main
-    SoundTouchD_x64
-  #  if(CAMKE_HOST_APPLE)
-  #  ${SDL2}
-  #  ${AVFoundation}
-  #  ${VideoToolbox}
-  #  ${AudioToolbox}
-  #  ${CoreFoundation}
-  #  ${CoreMedia}
-  #  ${CoreVideo}
-  #  ${Security}
-  #  bz2
-  #  iconv
-  #  crypto
-  #  ssl
-  #  z
-  #  m
-  #  pthread
-  #  lzma
-  #  endif()
+    SoundTouch
 )
 
 target_link_libraries(
@@ -110,23 +93,5 @@ target_link_libraries(
     avutil
     SDL2
     SDL2main
-    SoundTouchD_x64
-   # if(CAMKE_HOST_APPLE)
-   # ${SDL2}
-   # ${AVFoundation}
-   # ${VideoToolbox}
-   # ${AudioToolbox}
-   # ${CoreFoundation}
-   # ${CoreMedia}
-   # ${CoreVideo}
-   # ${Security}
-   # bz2
-   # iconv
-   # crypto
-   # ssl
-   # z
-   # m
-   # pthread
-   # lzma
-   # endif()
+    SoundTouch
 )

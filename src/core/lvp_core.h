@@ -28,9 +28,9 @@ typedef struct lvp_event_control LVPEventControl;
 typedef struct lvp_list LVPList;
 typedef struct lvp_module LVPModule;
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 typedef CRITICAL_SECTION lvp_mutex;
-#endif // LVP_WIN32
+#endif // LVP_WIN
 #ifdef LVP_LINUX
 #include <pthread.h>
 typedef pthread_mutex_t lvp_mutex;
@@ -164,5 +164,7 @@ int lvp_load_static_custom_module(custom_module_init minit, custom_module_close 
  * lvp core unload dynamic module,
  */
 void lvp_unload_static_custom_module();
+
+void lvp_register_ff_call_back();
 
 #endif

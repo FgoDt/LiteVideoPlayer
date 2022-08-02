@@ -1,6 +1,6 @@
 #include "lvp_semaphore.h"
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 
 #include <Windows.h>
 
@@ -121,7 +121,7 @@ LVP_BOOL lvp_semaphore_release(lvp_semaphore semaphore, int count)
 }
 
 
-#endif // LVP_WIN32
+#endif // LVP_WIN
 
 #ifdef LVP_LINUX
 

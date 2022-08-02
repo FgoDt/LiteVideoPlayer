@@ -1,8 +1,8 @@
 #include "lvp_log.h"
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 #include <time.h>
-#endif // LVP_WIN32
+#endif // LVP_WIN
 
 static int lvp_log_level = LVP_LOG_DEBUG;
 

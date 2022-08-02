@@ -14,7 +14,6 @@ typedef struct lvp_decoder{
     AVCodecContext *avctx;
     AVFrame *iframe;
 	AVFrame* sw_frame;
-    AVPacket *ipkt;
     lvp_thread dec_thread;
 
 	int decoder_pkt_count;

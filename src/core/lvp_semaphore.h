@@ -3,9 +3,9 @@
 
 #include "lvp_core.h"
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 typedef void* lvp_semaphore;
-#endif // LVP_WIN32
+#endif // LVP_WIN
 
 #ifdef LVP_LINUX
 typedef long int lvp_semaphore;

@@ -6,7 +6,7 @@ void lvp_sleep(uint64_t ms){
     usleep(ms*1000);
 #endif
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
     Sleep(ms);
 #endif
 }

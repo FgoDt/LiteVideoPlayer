@@ -1,6 +1,6 @@
 #include "lvp_condition.h"
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 
 #include <Windows.h>
 
@@ -36,7 +36,7 @@ LVP_BOOL lvp_condition_wait(lvp_condition* cond, lvp_mutex* mutex)
     return SleepConditionVariableCS(cond, mutex, INFINITE);
 }
 
-#endif // LVP_WIN32
+#endif // LVP_WIN
 
 #ifdef LVP_LINUX
 

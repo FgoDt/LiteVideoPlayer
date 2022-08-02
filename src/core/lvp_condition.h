@@ -4,7 +4,7 @@
 #include "lvp_core.h"
 #include "lvp_mutex.h"
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 typedef CONDITION_VARIABLE lvp_condition;
 
 #endif

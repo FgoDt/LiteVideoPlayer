@@ -4,9 +4,9 @@
 #include "lvp_core.h"
 
 typedef void*(*lvp_thread_func)(void *param);
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 typedef void* lvp_thread;
-#endif // LVP_WIN32
+#endif // LVP_WIN
 
 #ifdef LVP_LINUX
 typedef long int lvp_thread;

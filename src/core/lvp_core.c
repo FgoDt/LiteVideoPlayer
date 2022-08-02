@@ -2,13 +2,17 @@
 
 static int init_core_modules(LVPCore *core);
 
+static LVPCore *_lvp_core = NULL;
+
 LVPCore* lvp_core_alloc(){
+    lvp_register_ff_call_back();
     LVPCore *core = (LVPCore*)lvp_mem_mallocz(sizeof(*core));
     core->modules = lvp_list_alloc();
     core->options = lvp_map_alloc();
 	core->extra_modules = lvp_map_alloc();
     core->event_control = lvp_event_control_alloc();
     core->log = lvp_log_alloc("LVP CORE");
+    _lvp_core = core;
     return core;
 }
 
@@ -247,4 +251,21 @@ int lvp_load_static_custom_module(custom_module_init minit, custom_module_close 
 
 void lvp_unload_custom_module(){
     lvp_module_free_dynamic_module();
+}
+
+static void lvp_ff_log_callback(void* usr, int level, const char* fmt, va_list list){
+    if (level > av_log_get_level()) {
+        return;
+    }
+    char tmp[1024];
+    int ret = vsprintf(tmp,fmt,list);
+    tmp[ret] = 0;
+    printf("%s\n", tmp);
+    if(_lvp_core)
+        lvp_debug(_lvp_core->log, tmp, NULL);
+}
+
+void lvp_register_ff_call_back(){
+  //  av_log_set_level(AV_LOG_DEBUG);
+    av_log_set_callback(lvp_ff_log_callback);
 }

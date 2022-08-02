@@ -102,9 +102,10 @@ static void* reader_thread(void *data){
     }
 
     ret = 0;
-    AVPacket *ipkt = av_packet_alloc();
-    LVPPkt* lpkt = lvp_pkt_alloc(ipkt);
+    AVPacket *ipkt = NULL;
+    LVPPkt* lpkt = NULL;
     LVP_BOOL need_read = LVP_TRUE;
+    //lpkt->extra_data = 0;
 
 	//for submodule use
 	LVPEvent* sub_ev = lvp_event_alloc(lpkt, LVP_EVENT_READER_GOT_FRAME, LVP_FALSE);
@@ -115,6 +116,8 @@ static void* reader_thread(void *data){
     {
         if (need_read)
         {
+            ipkt = av_packet_alloc();
+            lpkt = lvp_pkt_alloc(ipkt);
             lvp_mutex_lock(&m->avctx_mutex);
             ret = av_read_frame(fmt,ipkt);
             lvp_mutex_unlock(&m->avctx_mutex);
@@ -123,7 +126,7 @@ static void* reader_thread(void *data){
             need_read = LVP_FALSE;
         }
 
-        lpkt->extra_data = 0;
+        
 
         //not select stream
 		int select_stream = 0;
@@ -162,13 +165,18 @@ static void* reader_thread(void *data){
         }
 
         //LVPSENDEVENT(m->ctl,LVP_EVENT_READER_GOT_FRAME,&ipkt);
+        sub_ev->data = lpkt;
 		lvp_event_control_send_event(m->ctl, sub_ev);
 
+        ev->data = lpkt;
 		int e_ret = lvp_event_control_send_event(m->ctl, ev);
 
         //need_read = e_ret == LVP_OK?LVP_TRUE:LVP_FALSE;
 		if (e_ret == LVP_OK) {
 			av_packet_unref(ipkt);
+            av_packet_free(&ipkt);
+            lvp_pkt_free(lpkt);
+            lpkt = NULL;
 			need_read = LVP_TRUE;
 		}
 		else {
@@ -178,8 +186,13 @@ static void* reader_thread(void *data){
 
     }
 
-    av_packet_unref(ipkt);
-	av_packet_free(&ipkt);
+    if (ipkt) {
+        av_packet_unref(ipkt);
+        av_packet_free(&ipkt);
+    }
+    if (lpkt) {
+        lvp_pkt_free(lpkt);
+    }
     lvp_event_free(ev);
 	lvp_event_free(sub_ev);
 

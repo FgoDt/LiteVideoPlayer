@@ -1,7 +1,7 @@
 #include "lvp_mutex.h"
 
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 
 LVP_BOOL lvp_mutex_create(lvp_mutex* mutex)
 {

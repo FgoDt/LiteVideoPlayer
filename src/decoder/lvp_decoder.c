@@ -102,7 +102,7 @@ static int find_best_video_decoder(LVPDecoder *decoder, LVPPkt *pkt){
 #ifdef LVP_IOS
 #endif
 
-#ifdef LVP_WIN32
+#ifdef LVP_WIN
 
 #endif
 
@@ -181,6 +181,7 @@ static int reconfig_video_decoder(LVPDecoder *decoder){
 	}else if(lvpPkt->type == AVMEDIA_TYPE_VIDEO){
 		return init_video_decoder(decoder, lvpPkt);
 	}
+    return LVP_OK;
 }
 
 static void* decoder_thread(void *data){
@@ -198,6 +199,7 @@ static void* decoder_thread(void *data){
 	int64_t avg_aduration = 0;
 	int64_t vframes = 0;
 	int64_t aframes = 0;
+    LVPPkt *lvpPkt = NULL;
 	while (d->decoder_thread_run == 1)
 	{
 		int ret = 0;
@@ -218,20 +220,23 @@ static void* decoder_thread(void *data){
 				break;
 			}
 		}
-		LVPPkt *lpkt = (LVPPkt*)ev->data;
-		d->ipkt = lpkt->pkt;
-		if (lpkt->extra_data) {
-			lvp_debug(d->log, "reset codec type: %d\n", lpkt->type);
-			if (lpkt->type == AVMEDIA_TYPE_AUDIO) {
-				ret = init_audio_decoder(d, lpkt);
+        if(lvpPkt != NULL){
+            av_packet_free(&lvpPkt->pkt);
+            lvp_pkt_free(lvpPkt);
+        }
+		lvpPkt = (LVPPkt*)ev->data;
+		if (lvpPkt->extra_data) {
+			lvp_debug(d->log, "reset codec type: %d\n", lvpPkt->type);
+			if (lvpPkt->type == AVMEDIA_TYPE_AUDIO) {
+				ret = init_audio_decoder(d, lvpPkt);
 				if (ret != LVP_OK) {
 					lvp_error(d->log, "reset audio codec error\n", NULL);
 					break;
 				}
 				continue;
 			}
-			else if (lpkt->type == AVMEDIA_TYPE_VIDEO) {
-				ret = init_video_decoder(d, lpkt);
+			else if (lvpPkt->type == AVMEDIA_TYPE_VIDEO) {
+				ret = init_video_decoder(d, lvpPkt);
 				if (ret != LVP_OK) {
 					lvp_error(d->log, "reset audio codec error\n", NULL);
 					break;
@@ -256,7 +261,7 @@ static void* decoder_thread(void *data){
 					break;
 				case 2:
 					//find key frame
-					if(lpkt->pkt->flags & AV_PKT_FLAG_KEY){
+					if(lvpPkt->pkt->flags & AV_PKT_FLAG_KEY){
 						d->reconfig_stage++;
 					}else{
 						continue;
@@ -273,12 +278,10 @@ static void* decoder_thread(void *data){
 		}
 
 		lvp_mutex_lock(&d->mutex);
-		ret = avcodec_send_packet(d->avctx, d->ipkt);
+		ret = avcodec_send_packet(d->avctx, lvpPkt->pkt);
 		lvp_mutex_unlock(&d->mutex);
 		if (ret < 0 && ret != AVERROR(EAGAIN)) {
 			lvp_error(d->log, "send packet error %d decoder pkt count:%d", ret, d->decoder_pkt_count);
-			av_packet_free(&d->ipkt);
-			//try reconfigure
 			d->reconfig_stage++;
 			continue;
 		}
@@ -286,7 +289,6 @@ static void* decoder_thread(void *data){
 			need_req = 0;
 		}
 		else {
-			av_packet_free(&d->ipkt);
 			need_req = 1;
 		}
 
@@ -295,7 +297,8 @@ static void* decoder_thread(void *data){
 		lvp_mutex_unlock(&d->mutex);
 		if (ret < 0 && ret != AVERROR(EAGAIN)) {
 			lvp_error(d->log, "receive frame error %d", ret);
-			break;
+            d->reconfig_stage++;
+            continue;
 		}
 		//check pts if NOPTS
 		if(d->iframe->pts == AV_NOPTS_VALUE){
@@ -376,6 +379,7 @@ static void* sub_decoder_thread(void* data) {
 	LVPEvent* ev = lvp_event_alloc(NULL, LVP_EVENT_REQ_PKT, LVP_TRUE);
 	LVPEvent* sev = lvp_event_alloc(NULL, LVP_EVENT_DECODER_SEND_SUB, LVP_TRUE);
 	int need_req = 1;
+    LVPPkt  *lvpPkt = NULL;
 	while (d->decoder_thread_run == 1)
 	{
 		int ret = 0;
@@ -393,19 +397,23 @@ static void* sub_decoder_thread(void* data) {
 				break;
 			}
 		}
+        if(lvpPkt != NULL){
+            av_packet_free(&lvpPkt->pkt);
+            lvp_pkt_free(lvpPkt);
+        }
 
-        d->ipkt = (AVPacket*)ev->data;
+        lvpPkt = (LVPPkt*)ev->data;
 		AVSubtitle *sub = lvp_mem_mallocz(sizeof(*sub));
 		int got = 0;
-		ret = avcodec_decode_subtitle2(d->avctx, sub, &got, d->ipkt);
+		ret = avcodec_decode_subtitle2(d->avctx, sub, &got, lvpPkt->pkt);
 		if (got == 0)
 		{
 			continue;
 		}
 		if(sub->start_display_time == 0 && sub->end_display_time == 0){
-			sub->start_display_time = d->ipkt->pts;
-			sub->end_display_time = d->ipkt->dts+d->ipkt->pts;
-			sub->pts = d->ipkt->pts;
+			sub->start_display_time = lvpPkt->pkt->pts;
+			sub->end_display_time = lvpPkt->pkt->dts+lvpPkt->pkt->pts;
+			sub->pts = lvpPkt->pkt->pts;
 		}
 
 		need_req = 1;
@@ -584,9 +592,6 @@ static void module_close(struct lvp_module *module){
 		av_frame_free(&decoder->sw_frame);
 	}
 
-	if (decoder->ipkt) {
-		av_packet_free(&decoder->ipkt);
-	}
 	if (decoder->log) {
 		lvp_log_free(decoder->log);
 	}
